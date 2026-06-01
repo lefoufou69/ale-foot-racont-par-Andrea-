@@ -5,8 +5,8 @@ import configPromise from '@payload-config'
 import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import { homeStatic } from '@/endpoints/seed/home-static'
 
+import { EmptyHome } from '@/components/EmptyHome'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
@@ -55,9 +55,16 @@ export default async function Page({ params: paramsPromise }: Args) {
     slug: decodedSlug,
   })
 
-  // Remove this code once your website is seeded
+  // Page d'accueil non encore composée dans l'admin : on affiche
+  // l'état vide assumé plutôt qu'une page cassée.
   if (!page && slug === 'home') {
-    page = homeStatic
+    return (
+      <>
+        <PageClient />
+        {draft && <LivePreviewListener />}
+        <EmptyHome />
+      </>
+    )
   }
 
   if (!page) {

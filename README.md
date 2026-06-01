@@ -77,7 +77,18 @@ DATABASE_URL=postgresql://andrea:andrea@127.0.0.1:5432/andrea_planet
 
 > Cette section sera complétée à la fin de chaque phase de livraison.
 
-À ce stade (fin de la **Phase 1 — Échafaudage**), l'administration expose déjà les collections par défaut du template (Pages, Posts, Catégories, Médias, Utilisateurs). Elles seront entièrement remplacées et francisées en **Phase 3**.
+À ce stade (fin de la **Phase 2 — Charte graphique**), l'administration expose toujours les collections du template (Pages, Posts, Catégories, Médias, Utilisateurs). Elles seront entièrement repensées en **Phase 3**.
+
+Le front, lui, est passé à la charte « Andrea Planet » :
+
+- **Couleurs** : papier crème (`--paper`), encre `--ink`, vert bouteille `--green`, vermillon `--vermilion`. Tokens exposés en utilities Tailwind : `bg-paper`, `text-ink`, `text-green`, `text-vermilion`, `border-line`, etc.
+- **Typographies** : Fraunces (titres), Newsreader (corps), Archivo (UI/chiffres) — chargées via `next/font/google`. Utility `.tabular` pour chiffres tabulaires.
+- **Grain papier** : overlay SVG fixe ~5 % d'opacité.
+- **Animations** : `.appear` (apparition décalée via `--i`), `.link-underline` (soulignement vermillon au survol), `.img-zoom` (zoom lent au survol). Respect de `prefers-reduced-motion`.
+- **Logo** : texte (Fraunces + Archivo), « Planet » en vert. Variantes `compact` / `full` et `tone` `ink` / `paper`.
+- **Header** : papier translucide, sticky, recherche en accent.
+- **Footer** : vert profond, bloc YouTube unique (`https://www.youtube.com/@dédéap69`).
+- **Page d'accueil vide** : composant `EmptyHome` (« Bientôt » → « Rien n'est *encore* écrit. » + newsletter + lien YouTube). Disparaîtra dès qu'une page `home` sera publiée dans l'admin.
 
 ---
 
@@ -99,7 +110,7 @@ Le projet est livré en **6 phases**, avec une démonstration et une pause aprè
 | Phase | Contenu | État |
 |-------|---------|------|
 | 1 | Échafaudage : projet, base, admin accessible | ✅ terminée |
-| 2 | Charte graphique : couleurs, typos, header, footer, état vide | à venir |
+| 2 | Charte graphique : couleurs, typos, header, footer, état vide | ✅ terminée |
 | 3 | Modèle de contenu : collections, rôles, admin FR | à venir |
 | 4 | Blocs riches (texte, tableau, **schéma tactique**, etc.) | à venir |
 | 5 | Front : article, rubrique, podcast, recherche, accueil libre | à venir |
