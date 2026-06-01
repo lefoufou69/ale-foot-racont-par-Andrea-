@@ -21,11 +21,17 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 
+import { isEditor } from '../../access/isEditor'
+
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
+  labels: {
+    singular: 'Page',
+    plural: 'Pages',
+  },
   access: {
     create: authenticated,
-    delete: authenticated,
+    delete: isEditor,
     read: authenticatedOrPublished,
     update: authenticated,
   },
@@ -38,6 +44,9 @@ export const Pages: CollectionConfig<'pages'> = {
   },
   admin: {
     defaultColumns: ['title', 'slug', 'updatedAt'],
+    group: 'Publications',
+    description:
+      'Pages 100 % libres composées au layout builder : Accueil, À propos, Mentions légales, etc. La page d\'accueil utilise le slug `home`.',
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -57,6 +66,7 @@ export const Pages: CollectionConfig<'pages'> = {
   fields: [
     {
       name: 'title',
+      label: 'Titre',
       type: 'text',
       required: true,
     },
@@ -65,21 +75,24 @@ export const Pages: CollectionConfig<'pages'> = {
       tabs: [
         {
           fields: [hero],
-          label: 'Hero',
+          label: 'En-tête',
         },
         {
           fields: [
             {
               name: 'layout',
+              label: 'Composition',
               type: 'blocks',
               blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock],
               required: true,
               admin: {
                 initCollapsed: true,
+                description:
+                  'Empiler les blocs pour composer la page. Réordonner par glisser-déposer.',
               },
             },
           ],
-          label: 'Content',
+          label: 'Composition',
         },
         {
           name: 'meta',
@@ -112,6 +125,7 @@ export const Pages: CollectionConfig<'pages'> = {
     },
     {
       name: 'publishedAt',
+      label: 'Date de publication',
       type: 'date',
       admin: {
         position: 'sidebar',

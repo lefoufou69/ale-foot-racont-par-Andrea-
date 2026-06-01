@@ -16,20 +16,41 @@ const dirname = path.dirname(filename)
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: {
+    singular: 'Média',
+    plural: 'Médias',
+  },
   access: {
     create: authenticated,
     delete: authenticated,
     read: anyone,
     update: authenticated,
   },
+  admin: {
+    group: 'Bibliothèque',
+    description:
+      'Toutes les images et fichiers du site. Renseigner systématiquement le texte alternatif (accessibilité) et le crédit.',
+  },
   fields: [
     {
       name: 'alt',
+      label: 'Texte alternatif',
       type: 'text',
-      //required: true,
+      admin: {
+        description: 'Description courte pour l\'accessibilité et le SEO.',
+      },
+    },
+    {
+      name: 'credit',
+      label: 'Crédit',
+      type: 'text',
+      admin: {
+        description: 'Photographe, agence, etc.',
+      },
     },
     {
       name: 'caption',
+      label: 'Légende',
       type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {

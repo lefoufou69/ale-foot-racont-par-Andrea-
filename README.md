@@ -75,9 +75,57 @@ DATABASE_URL=postgresql://andrea:andrea@127.0.0.1:5432/andrea_planet
 
 ## 4. Ajouter / organiser le contenu
 
-> Cette section sera complétée à la fin de chaque phase de livraison.
+L'administration est entièrement en français et organisée en quatre groupes dans la barre latérale :
 
-À ce stade (fin de la **Phase 2 — Charte graphique**), l'administration expose toujours les collections du template (Pages, Posts, Catégories, Médias, Utilisateurs). Elles seront entièrement repensées en **Phase 3**.
+| Groupe | Collections / globals |
+|---|---|
+| **Publications** | Articles · Podcasts · Pages |
+| **Taxonomies** | Rubriques · Compétitions · Auteurs |
+| **Bibliothèque** | Médias |
+| **Compte** | Utilisateurs |
+| **Réglages** | Identité · Navigation · Pied de page |
+
+### Articles
+
+Champs (onglet Contenu) : surtitre, titre, chapô, image de une + légende + crédit, corps de l'article (texte riche + blocs).
+Champs (onglet Méta) : format (analyse / récit / revue / dossier), rubrique(s), compétition, signatures (Auteurs), articles liés.
+Sidebar : état éditorial (en rédaction → en relecture → prêt à publier), date de publication, **temps de lecture calculé automatiquement** depuis le corps, rédacteur(s) (compte Utilisateurs).
+SEO : titre, description, image OG (via plugin SEO).
+
+### Rubriques
+
+Nom, description, **ordre d'affichage** (les plus petits nombres apparaissent en premier), couleur d'accent en hexadécimal. Les rubriques sont triées par ordre par défaut.
+
+### Compétitions
+
+Nom, pays/zone, logo. Sert à filtrer les articles par compétition.
+
+### Auteurs
+
+Signatures publiques : nom, biographie, portrait, liens externes (YouTube, site perso…), slug. Optionnellement reliées à un compte Utilisateur. **Indépendant des comptes** : une signature peut exister sans compte de connexion.
+
+### Podcasts
+
+Titre + numéro d'épisode (sidebar), fichier audio (upload) **ou** URL d'embed (Ausha, Acast…), durée, visuel, show notes (texte riche), date de publication.
+
+### Rôles & workflow
+
+Trois rôles définissables sur Utilisateurs :
+
+- **Administrateur** : tout, peut créer et gérer les comptes.
+- **Éditeur** : peut relire, publier, supprimer les articles.
+- **Auteur** : peut créer et éditer ses articles, ne publie pas.
+
+Cycle éditorial : le champ « État éditorial » (En rédaction → En relecture → Prêt à publier) accompagne le statut Payload (brouillon / publié). Seul un éditeur peut faire passer un article en publié. Drafts, versions et prévisualisation en direct sont fournis par Payload.
+
+### Composer la page d'accueil
+
+Tant qu'aucune page de slug `home` n'est créée, l'accueil affiche l'état vide « Rien n'est *encore* écrit. ». Pour composer une vraie page d'accueil :
+
+1. Aller dans **Publications → Pages**, cliquer sur « Créer ».
+2. Donner le slug `home`.
+3. Empiler les blocs dans l'onglet **Composition**.
+4. Publier.
 
 Le front, lui, est passé à la charte « Andrea Planet » :
 
@@ -111,7 +159,7 @@ Le projet est livré en **6 phases**, avec une démonstration et une pause aprè
 |-------|---------|------|
 | 1 | Échafaudage : projet, base, admin accessible | ✅ terminée |
 | 2 | Charte graphique : couleurs, typos, header, footer, état vide | ✅ terminée |
-| 3 | Modèle de contenu : collections, rôles, admin FR | à venir |
+| 3 | Modèle de contenu : collections, rôles, admin FR | ✅ terminée |
 | 4 | Blocs riches (texte, tableau, **schéma tactique**, etc.) | à venir |
 | 5 | Front : article, rubrique, podcast, recherche, accueil libre | à venir |
 | 6 | Finitions : SEO, performance, accessibilité, déploiement | à venir |

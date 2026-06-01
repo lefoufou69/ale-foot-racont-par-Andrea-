@@ -67,10 +67,13 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    pages: Page;
     posts: Post;
-    media: Media;
+    podcasts: Podcast;
+    pages: Page;
     categories: Category;
+    competitions: Competition;
+    auteurs: Auteur;
+    media: Media;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -84,10 +87,13 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    podcasts: PodcastsSelect<false> | PodcastsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    competitions: CompetitionsSelect<false> | CompetitionsSelect<true>;
+    auteurs: AuteursSelect<false> | AuteursSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -104,10 +110,12 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    identite: Identite;
     header: Header;
     footer: Footer;
   };
   globalsSelect: {
+    identite: IdentiteSelect<false> | IdentiteSelect<true>;
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
@@ -146,82 +154,28 @@ export interface UserAuthOperations {
   };
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
- */
-export interface Page {
-  id: number;
-  title: string;
-  hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
-    richText?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null;
-            newTab?: boolean | null;
-            reference?:
-              | ({
-                  relationTo: 'pages';
-                  value: number | Page;
-                } | null)
-              | ({
-                  relationTo: 'posts';
-                  value: number | Post;
-                } | null);
-            url?: string | null;
-            label: string;
-            /**
-             * Choose how the link should be rendered.
-             */
-            appearance?: ('default' | 'outline') | null;
-          };
-          id?: string | null;
-        }[]
-      | null;
-    media?: (number | null) | Media;
-  };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (number | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
+ * Analyses, récits, dossiers tactiques, revues. Le cœur du magazine.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
 export interface Post {
   id: number;
   title: string;
+  /**
+   * Petit texte au-dessus du titre. Optionnel.
+   */
+  surtitre?: string | null;
+  /**
+   * Le résumé qui donne envie de lire. 1 à 3 phrases.
+   */
+  chapo?: string | null;
   heroImage?: (number | null) | Media;
+  legendeImage?: string | null;
+  creditImage?: string | null;
+  /**
+   * Texte riche + blocs (image, encadré, citation, schéma tactique…). Tous les blocs spécifiques au magazine seront ajoutés en Phase 4.
+   */
   content: {
     root: {
       type: string;
@@ -237,8 +191,20 @@ export interface Post {
     };
     [k: string]: unknown;
   };
-  relatedPosts?: (number | Post)[] | null;
+  /**
+   * Permet de varier le rendu et d'afficher une étiquette explicite dans l'article.
+   */
+  format?: ('analyse' | 'recit' | 'revue' | 'dossier') | null;
   categories?: (number | Category)[] | null;
+  /**
+   * Optionnel.
+   */
+  competition?: (number | null) | Competition;
+  /**
+   * Signatures publiques affichées sur l'article. Différentes du compte « Rédacteur » qui contrôle les droits d'édition.
+   */
+  signatures?: (number | Auteur)[] | null;
+  relatedPosts?: (number | Post)[] | null;
   meta?: {
     title?: string | null;
     /**
@@ -247,7 +213,18 @@ export interface Post {
     image?: (number | null) | Media;
     description?: string | null;
   };
+  /**
+   * Cycle interne : rédaction → relecture → prêt à publier. Seul un éditeur peut basculer le statut Payload sur « publié ».
+   */
+  etatEditorial: 'redaction' | 'relecture' | 'pret';
   publishedAt?: string | null;
+  /**
+   * Calculé automatiquement à partir du corps de l'article.
+   */
+  tempsLecture?: number | null;
+  /**
+   * Comptes Utilisateurs qui ont rédigé l'article. Différent des « Signatures » publiques.
+   */
   authors?: (number | User)[] | null;
   populatedAuthors?:
     | {
@@ -265,12 +242,21 @@ export interface Post {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Toutes les images et fichiers du site. Renseigner systématiquement le texte alternatif (accessibilité) et le crédit.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Description courte pour l'accessibilité et le SEO.
+   */
   alt?: string | null;
+  /**
+   * Photographe, agence, etc.
+   */
+  credit?: string | null;
   caption?: {
     root: {
       type: string;
@@ -357,12 +343,23 @@ export interface Media {
   };
 }
 /**
+ * Les rubriques structurent le site (Analyses, Histoire, Dossiers tactiques, Revues…). L'ordre d'affichage détermine leur position dans la navigation et les listes.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
   id: number;
   title: string;
+  description?: string | null;
+  /**
+   * Plus le nombre est petit, plus la rubrique apparaît tôt.
+   */
+  ordre?: number | null;
+  /**
+   * Optionnel. Code hexadécimal (ex : #1C4B2E).
+   */
+  couleurAccent?: string | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -381,12 +378,76 @@ export interface Category {
   createdAt: string;
 }
 /**
+ * Taxonomie utilisée pour filtrer et regrouper les articles par compétition.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "competitions".
+ */
+export interface Competition {
+  id: number;
+  nom: string;
+  /**
+   * Exemple : Angleterre, Europe, Monde.
+   */
+  pays?: string | null;
+  logo?: (number | null) | Media;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Signatures publiques. Une signature peut être liée à un compte utilisateur, mais n'a pas besoin d'un compte pour exister.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auteurs".
+ */
+export interface Auteur {
+  id: number;
+  nom: string;
+  /**
+   * Quelques lignes affichées sur la page auteur et en bas des articles.
+   */
+  bio?: string | null;
+  avatar?: (number | null) | Media;
+  /**
+   * YouTube, site personnel, etc.
+   */
+  liens?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optionnel. Si cette signature correspond à un compte de connexion à l'administration.
+   */
+  utilisateur?: (number | null) | User;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Comptes de connexion à l'administration. Les signatures publiques (bio, avatar, page auteur) sont gérées dans la collection « Auteurs ».
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
-  name?: string | null;
+  name: string;
+  /**
+   * Administrateur : tout. Éditeur : relit et publie. Auteur : crée et soumet, ne publie pas.
+   */
+  role: 'admin' | 'editeur' | 'auteur';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -405,6 +466,128 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * Épisodes du podcast — fichier audio + show notes éditoriales.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "podcasts".
+ */
+export interface Podcast {
+  id: number;
+  titre: string;
+  numeroEpisode: number;
+  /**
+   * Préférer un MP3 < 100 Mo. Sinon, utiliser l'URL d'embed.
+   */
+  fichierAudio?: (number | null) | Media;
+  /**
+   * Exemple : URL Ausha, Acast, Spotify pour Podcasters.
+   */
+  embedUrl?: string | null;
+  duree?: string | null;
+  image?: (number | null) | Media;
+  /**
+   * Plan de l'épisode, intervenants, liens, références.
+   */
+  showNotes?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  publishedAt?: string | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Pages 100 % libres composées au layout builder : Accueil, À propos, Mentions légales, etc. La page d'accueil utilise le slug `home`.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  hero: {
+    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+    richText?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    links?:
+      | {
+          link: {
+            type?: ('reference' | 'custom') | null;
+            newTab?: boolean | null;
+            reference?:
+              | ({
+                  relationTo: 'pages';
+                  value: number | Page;
+                } | null)
+              | ({
+                  relationTo: 'posts';
+                  value: number | Post;
+                } | null);
+            url?: string | null;
+            label: string;
+            /**
+             * Choose how the link should be rendered.
+             */
+            appearance?: ('default' | 'outline') | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+    media?: (number | null) | Media;
+  };
+  /**
+   * Empiler les blocs pour composer la page. Réordonner par glisser-déposer.
+   */
+  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  meta?: {
+    title?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+    description?: string | null;
+  };
+  publishedAt?: string | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -939,20 +1122,32 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'pages';
-        value: number | Page;
-      } | null)
-    | ({
         relationTo: 'posts';
         value: number | Post;
       } | null)
     | ({
-        relationTo: 'media';
-        value: number | Media;
+        relationTo: 'podcasts';
+        value: number | Podcast;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'competitions';
+        value: number | Competition;
+      } | null)
+    | ({
+        relationTo: 'auteurs';
+        value: number | Auteur;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
       } | null)
     | ({
         relationTo: 'users';
@@ -1015,6 +1210,65 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  surtitre?: T;
+  chapo?: T;
+  heroImage?: T;
+  legendeImage?: T;
+  creditImage?: T;
+  content?: T;
+  format?: T;
+  categories?: T;
+  competition?: T;
+  signatures?: T;
+  relatedPosts?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        image?: T;
+        description?: T;
+      };
+  etatEditorial?: T;
+  publishedAt?: T;
+  tempsLecture?: T;
+  authors?: T;
+  populatedAuthors?:
+    | T
+    | {
+        id?: T;
+        name?: T;
+      };
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "podcasts_select".
+ */
+export interface PodcastsSelect<T extends boolean = true> {
+  titre?: T;
+  numeroEpisode?: T;
+  fichierAudio?: T;
+  embedUrl?: T;
+  duree?: T;
+  image?: T;
+  showNotes?: T;
+  publishedAt?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1153,34 +1407,60 @@ export interface FormBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
+ * via the `definition` "categories_select".
  */
-export interface PostsSelect<T extends boolean = true> {
+export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
-  heroImage?: T;
-  content?: T;
-  relatedPosts?: T;
-  categories?: T;
-  meta?:
+  description?: T;
+  ordre?: T;
+  couleurAccent?: T;
+  generateSlug?: T;
+  slug?: T;
+  parent?: T;
+  breadcrumbs?:
     | T
     | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  authors?: T;
-  populatedAuthors?:
-    | T
-    | {
+        doc?: T;
+        url?: T;
+        label?: T;
         id?: T;
-        name?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "competitions_select".
+ */
+export interface CompetitionsSelect<T extends boolean = true> {
+  nom?: T;
+  pays?: T;
+  logo?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auteurs_select".
+ */
+export interface AuteursSelect<T extends boolean = true> {
+  nom?: T;
+  bio?: T;
+  avatar?: T;
+  liens?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  utilisateur?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1188,6 +1468,7 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  credit?: T;
   caption?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1277,30 +1558,11 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
- */
-export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
-  generateSlug?: T;
-  slug?: T;
-  parent?: T;
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T;
-        url?: T;
-        label?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1582,6 +1844,32 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Nom du magazine, signature, logo. Visible partout sur le site.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "identite".
+ */
+export interface Identite {
+  id: number;
+  nomSite: string;
+  /**
+   * Apparaît dans le pied de page et sur les pages auteur / état vide.
+   */
+  tagline?: string | null;
+  /**
+   * Optionnel. Si vide, le logo typographique par défaut (Andrea Planet) est utilisé.
+   */
+  logoCustom?: (number | null) | Media;
+  /**
+   * Utilisée dans le pied de page et pour le SEO par défaut.
+   */
+  descriptionCourte?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Entrées du menu principal. Réordonner par glisser-déposer. Chaque entrée pointe vers une page interne ou une URL externe.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header".
  */
@@ -1611,6 +1899,8 @@ export interface Header {
   createdAt?: string | null;
 }
 /**
+ * Liens et lien YouTube affichés dans le pied de page.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
@@ -1636,8 +1926,25 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Affiché en accent dans le pied de page. Seul réseau social en ligne pour l'instant.
+   */
+  youtubeUrl?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "identite_select".
+ */
+export interface IdentiteSelect<T extends boolean = true> {
+  nomSite?: T;
+  tagline?: T;
+  logoCustom?: T;
+  descriptionCourte?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1681,6 +1988,7 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  youtubeUrl?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1705,12 +2013,16 @@ export interface TaskSchedulePublish {
     locale?: string | null;
     doc?:
       | ({
-          relationTo: 'pages';
-          value: number | Page;
-        } | null)
-      | ({
           relationTo: 'posts';
           value: number | Post;
+        } | null)
+      | ({
+          relationTo: 'podcasts';
+          value: number | Podcast;
+        } | null)
+      | ({
+          relationTo: 'pages';
+          value: number | Page;
         } | null);
     global?: string | null;
     user?: (number | null) | User;
